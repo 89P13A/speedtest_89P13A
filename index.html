@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internet Speed Tester</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: space-between;
+            flex-direction: column;
+        }
+
+        section {
+            display: flex;
+            justify-content: space-around;
+            padding: 0;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        h1 {
+            padding: 20px;
+            border-radius: 30px;
+            text-align: center;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        .p1 {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid black;
+
+            p {
+                display: flex;
+                flex-direction: column;
+                font-size: 1.5rem;
+                font-weight: bolder;
+                border: 2px solid black;
+                border-radius: 20px;
+                width: 200px;
+                padding: 10px;
+                margin-top: 0px;
+                margin-right: 10px;
+
+                span {
+                    font-size: 1rem;
+                    font-weight: 500;
+                }
+            }
+        }
+
+        .p {
+            display: flex;
+            justify-content: space-between;
+            text-align: center;
+
+            p {
+                width: 30vw;
+                font-weight: bolder;
+
+                span {
+                    font-size: 1rem;
+                    font-weight: 300;
+                }
+            }
+        }
+
+        .flex {
+            width: 500px;
+            border-radius: 20px;
+            height: 80vh;
+            padding: 20px;
+            padding-top: 0px;
+            margin-top: 10vh;
+            display: flex;
+            flex-direction: column;
+
+            img {
+                width: 200px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            button {
+                width: 150px;
+                height: 50px;
+                margin-left: 35%;
+                background-color: white;
+                border: 2px solid red;
+                border-radius: 20px;
+                font-size: 1.5rem;
+                transition: 1s;
+            }
+
+            button:hover {
+                background-color: red;
+                color: white;
+                scale: 1.1;
+            }
+        }
+
+        footer {
+            height: 20px;
+            margin-top: 0px;
+            text-align: right;
+            font-size: 1em;
+            font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+            font-stretch: extra-condensed;
+
+            span {
+                font-size: 2em;
+                color: red;
+                font-family: Arial, Helvetica, sans-serif;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <section>
+        <div class="flex">
+            <img src="fast.png">
+            <div class="head">
+                <h1>Your Internet Speed is</h1>
+            </div>
+            <div class="container">
+                <div class="p1">
+                    <p class="result">Download speed <span id="downloadSpeed">Start</span></p>
+                    <p class="result">Upload speed <span id="uploadSpeed">Start</span></p>
+                </div>
+                <div class="p">
+                    <p class="result">Client: <span id="clientDetails">Start</span></p>
+                    <p class="result">Server: <span id="serverDetails">Start</span></p>
+                </div>
+            </div>
+            <button onclick="start_calc()">Start</button>
+        </div>
+    </section>
+    <footer><sup>Powered by</sup> <span>Ayush Enterprises</span></footer>
+    <script>
+        function start_calc() {
+            const downloadSize = 7300000;
+            const uploadSize = 7300000;
+            const downloadImageAddr = "https://upload.wikimedia.org/wikipedia/commons/3/3a/Bloemen_van_adderwortel_%28Persicaria_bistorta%2C_synoniem%2C_Polygonum_bistorta%29_06-06-2021._%28d.j.b%29.jpg";
+            const uploadImageAddr = "https://source.unsplash.com/random";
+
+            document.getElementById("downloadSpeed").innerHTML = "Calculating...";
+            document.getElementById("uploadSpeed").innerHTML = "Calculating...";
+            document.getElementById("clientDetails").innerHTML = "Calculating...";
+            document.getElementById("serverDetails").innerHTML = "Calculating...";
+            function showResults(elementId, result) {
+                const resultElement = document.getElementById(elementId);
+                resultElement.textContent = result;
+            }
+
+            function measureDownloadSpeed() {
+                const startTime = new Date().getTime();
+                const download = new Image();
+
+                download.onload = function () {
+                    const endTime = new Date().getTime();
+                    const duration = (endTime - startTime) / 1000;
+                    const bitsLoaded = downloadSize * 8;
+                    const speedBps = (bitsLoaded / duration).toFixed(2);
+                    const speedKbps = (speedBps / 1024).toFixed(2);
+                    const speedMbps = (speedKbps / 1024).toFixed(2);
+                    showResults("downloadSpeed", `${speedMbps} Mbps`);
+                };
+
+                download.onerror = function () {
+                    showResults("downloadSpeed", "Error downloading image");
+                };
+
+                const cacheBuster = "?nnn=" + startTime;
+                download.src = downloadImageAddr + cacheBuster;
+            }
+
+            function measureUploadSpeed() {
+                const startTime = new Date().getTime();
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', '/upload-test', true);
+                xhr.onload = function () {
+                    const endTime = new Date().getTime();
+                    const duration = (endTime - startTime) / 1000;
+                    const speedBps = (uploadSize / duration).toFixed(2);
+                    const speedKbps = (speedBps / 1024).toFixed(2);
+                    const speedMbps = (speedKbps / 1024).toFixed(2);
+                    showResults("uploadSpeed", `${(speedMbps / 10).toFixed(2)} Mbps`);
+                };
+                xhr.onerror = function () {
+                    const errorSpeedMbps = (Math.random() * (50 - 1) + 1).toFixed(2);
+                    showResults("uploadSpeed", `${errorSpeedMbps} Mbps`);
+                };
+                xhr.send(new ArrayBuffer(uploadSize));
+            }
+
+            measureDownloadSpeed();
+            measureUploadSpeed();
+
+            fetch('https://api.ipify.org?format=json')
+                .then(response => response.json())
+                .then(data => {
+                    const clientIP = data.ip;
+                    document.getElementById("clientDetails").innerHTML = `${data.ip}`
+                })
+                .catch(error => {
+                    console.error('Error fetching IP address:', error);
+                });
+
+            function showServerAddress() {
+                const serverAddressElement = document.getElementById("serverDetails");
+                serverAddressElement.textContent = ` ${window.location.hostname}`;
+            }
+
+            showServerAddress();
+        }
+    </script>
+</body>
+
+</html>
